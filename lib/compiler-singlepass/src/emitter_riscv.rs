@@ -30,7 +30,12 @@ pub type Location = AbstractLocation<GPR, FPR>;
 /// Branch conditions for RISC-V.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Condition {
-    // TODO: define RISC-V branch conditions.
+    BEQ,
+    BNE,
+    BLT,
+    BGE,
+    BLTU,
+    BGEU,
 }
 
 /// Emitter trait for RISC-V.
@@ -49,4 +54,24 @@ pub trait EmitterRiscv {
     fn finalize_function(&mut self) -> Result<(), CompileError>;
 
     // TODO: add methods for emitting RISC-V instructions (e.g., loads, stores, arithmetic, branches, etc.)
+}
+
+impl EmitterRiscv for AssemblerRiscv {
+    fn get_simd_arch(&self) -> Option<&CpuFeature> {
+        self.simd_arch.as_ref()
+    }
+
+    fn get_label(&mut self) -> Label {
+        self.new_dynamic_label()
+    }
+
+    fn get_offset(&self) -> AssemblyOffset {
+        self.offset()
+    }
+
+    fn get_jmp_instr_size(&self) -> u8 {
+        4 // jal/jalr
+    }
+
+    fn finalize_function(&mut self) -> Result<(), CompileError>;
 }

@@ -49,6 +49,7 @@ pub enum CpuFeature {
     // ARM features
     NEON,
     // Risc-V features
+    FPU
 }
 
 impl CpuFeature {
@@ -121,6 +122,16 @@ impl CpuFeature {
         EnumSet::new()
     }
 
+    #[cfg(target_arch = "riscv64")]
+    /// Retrieves the features for the current Host
+    pub fn for_host() -> EnumSet<Self> {
+        let mut features = EnumSet::new();
+
+        features.insert(Self::FPU);
+
+        features
+    }
+
     /// Retrieves an empty set of `CpuFeature`s.
     pub fn set() -> EnumSet<Self> {
         // We default to an empty hash set
@@ -134,6 +145,7 @@ impl CpuFeature {
 // X86: https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
 // ARM: https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
 // Aarch64: https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
+// RISC-V: https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html
 impl FromStr for CpuFeature {
     type Err = ParseCpuFeatureError;
 
@@ -154,6 +166,7 @@ impl FromStr for CpuFeature {
             "avx512f" => Ok(Self::AVX512F),
             "lzcnt" => Ok(Self::LZCNT),
             "neon" => Ok(Self::NEON),
+            "f" => Ok(Self::FPU),
             _ => Err(ParseCpuFeatureError::Missing(s.to_string())),
         }
     }
@@ -180,6 +193,7 @@ impl std::fmt::Display for CpuFeature {
                 Self::AVX512F => "avx512f",
                 Self::LZCNT => "lzcnt",
                 Self::NEON => "neon",
+                Self::FPU => "f",
             }
         )
     }
