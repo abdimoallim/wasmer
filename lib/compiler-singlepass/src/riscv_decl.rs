@@ -31,25 +31,51 @@ pub enum FPR {
 }
 
 impl AbstractReg for GPR {
+    #[rustfmt::skip]
     fn is_callee_save(self) -> bool {
-        // TODO: implement callee-save registers for RISC-V.
-        todo!()
+        matches!(
+            self, // s0 - s11, x8 - x9
+            GPR::X8 | GPR::X9 | GPR::X18 | GPR::X19 | GPR::X20 | GPR::X21
+            | GPR::X22 | GPR::X23 | GPR::X24 | GPR::X25 | GPR::X26 | GPR::X27
+        )
     }
+
+    #[rustfmt::skip]
     fn is_reserved(self) -> bool {
-        // TODO: implement reserved registers for RISC-V (e.g., X0 always zero, stack pointer).
-        todo!()
+        matches!(
+            self,
+            GPR::X0 |    // zero
+            GPR::X2 |    // sp
+            GPR::X3 |    // gp
+            GPR::X4      // tp
+        )
     }
+
     fn into_index(self) -> usize {
         self as usize
     }
+
     fn from_index(n: usize) -> Result<GPR, ()> {
-        // TODO: map index to GPR.
-        todo!()
+        if n <= GPR::X31 as usize {
+            // SAFETY: We've checked the bounds and all variants are valid.
+            Ok(unsafe { std::mem::transmute(n as u8) })
+        } else {
+            Err(())
+        }
     }
+
     fn iterator() -> Iter<'static, GPR> {
-        // TODO: return an iterator over all GPR variants.
-        todo!()
+        #[rustfmt::skip]
+        static REGISTERS: [GPR; 32] = [
+            GPR::X0, GPR::X1, GPR::X2, GPR::X3, GPR::X4, GPR::X5, GPR::X6, GPR::X7,
+            GPR::X8, GPR::X9, GPR::X10, GPR::X11, GPR::X12, GPR::X13, GPR::X14, GPR::X15,
+            GPR::X16, GPR::X17, GPR::X18, GPR::X19, GPR::X20, GPR::X21, GPR::X22, GPR::X23,
+            GPR::X24, GPR::X25, GPR::X26, GPR::X27, GPR::X28, GPR::X29, GPR::X30, GPR::X31,
+        ];
+
+        REGISTERS.iter()
     }
+
     fn to_dwarf(self) -> u16 {
         // TODO: map register to DWARF register number.
         todo!()
@@ -57,25 +83,43 @@ impl AbstractReg for GPR {
 }
 
 impl AbstractReg for FPR {
+    #[rustfmt::skip]
     fn is_callee_save(self) -> bool {
-        // TODO: implement callee-save registers for FPR.
-        todo!()
+        matches!(
+            self, // fs0 - fs11, f8 - f9
+            FPR::F8 | FPR::F9 | FPR::F18 | FPR::F19 | FPR::F20 | FPR::F21 | 
+            FPR::F22 | FPR::F23 | FPR::F24 | FPR::F25 | FPR::F26 | FPR::F27
+        )
     }
+
     fn is_reserved(self) -> bool {
-        // TODO: implement reserved floating-point registers.
-        todo!()
+        false
     }
+
     fn into_index(self) -> usize {
         self as usize
     }
+
     fn from_index(n: usize) -> Result<FPR, ()> {
-        // TODO: map index to FPR.
-        todo!()
+        if n <= FPR::F31 as usize {
+            Ok(unsafe { std::mem::transmute(n as u8) })
+        } else {
+            Err(())
+        }
     }
+
     fn iterator() -> Iter<'static, FPR> {
-        // TODO: return an iterator over all FPR variants.
-        todo!()
+        #[rustfmt::skip]
+        static REGISTERS: [FPR; 32] = [
+            FPR::F0, FPR::F1, FPR::F2, FPR::F3, FPR::F4, FPR::F5, FPR::F6, FPR::F7,
+            FPR::F8, FPR::F9, FPR::F10, FPR::F11, FPR::F12, FPR::F13, FPR::F14, FPR::F15,
+            FPR::F16, FPR::F17, FPR::F18, FPR::F19, FPR::F20, FPR::F21, FPR::F22, FPR::F23,
+            FPR::F24, FPR::F25, FPR::F26, FPR::F27, FPR::F28, FPR::F29, FPR::F30, FPR::F31,
+        ];
+
+        REGISTERS.iter()
     }
+
     fn to_dwarf(self) -> u16 {
         // TODO: map FPR register to DWARF register number.
         todo!()
