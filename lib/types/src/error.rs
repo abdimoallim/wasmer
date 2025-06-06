@@ -1,5 +1,5 @@
 //! The WebAssembly possible errors
-use crate::{ExternType, Pages};
+use crate::{ExternType, Pages, target::CallingConvention};
 use std::io;
 use thiserror::Error;
 
@@ -179,6 +179,10 @@ pub enum CompileError {
     /// Middleware error occurred.
     #[cfg_attr(feature = "std", error("Middleware error: {0}"))]
     MiddlewareError(String),
+
+    /// Target does not support the expected ABI (cf. ArgumentRegisterAllocator).
+    #[cfg_attr(feature = "std", error("ABI not supported: {0}"))]
+    UnsupportedABI(String, CallingConvention),
 }
 
 impl From<WasmError> for CompileError {

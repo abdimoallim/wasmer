@@ -138,7 +138,7 @@ impl MachineRiscv {
 #[allow(dead_code)]
 #[derive(PartialEq)]
 enum ImmType {
-    // TODO: define RISC-V immediate types.
+    I, S, B, U, J,
 }
 
 #[allow(dead_code)]

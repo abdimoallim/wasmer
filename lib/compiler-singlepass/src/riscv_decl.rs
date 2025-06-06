@@ -157,18 +157,57 @@ impl CombinedRegister for RiscvRegister {
 /// Allocator for function argument registers according to the RISC-V ABI.
 #[derive(Default)]
 pub struct ArgumentRegisterAllocator {
-    // TODO: track next GPR/FPR for argument passing.
+    next_gpr: usize,
+    next_fpr: usize,
 }
 
 impl ArgumentRegisterAllocator {
+    /// Integer argument registers in order (a0-a7).
+    const INT_REGS: [GPR; 8] = [
+        GPR::X10, GPR::X11, GPR::X12, GPR::X13,
+        GPR::X14, GPR::X15, GPR::X16, GPR::X17,
+    ];
+
+    /// Floating-point argument registers in order (fa0-fa7).
+    const FLOAT_REGS: [FPR; 8] = [
+        FPR::F10, FPR::F11, FPR::F12, FPR::F13,
+        FPR::F14, FPR::F15, FPR::F16, FPR::F17,
+    ];
+
     /// Allocates a register for argument type `ty`. Returns `None` if no register is available.
     pub fn next(
         &mut self,
         ty: Type,
         calling_convention: CallingConvention,
     ) -> Result<Option<RiscvRegister>, CompileError> {
-        // TODO: implement RISC-V calling convention register allocation.
-        todo!()
+        match (ty, calling_convention) {
+            (Type::I32 | Type::I64, _) => {
+                if self.next_gpr < Self::INT_REGS.len() {
+                    let reg = Self::INT_REGS[self.next_gpr];
+                    self.next_gpr += 1;
+
+                    Ok(Some(RiscvRegister::GPR(reg)))
+                } else {
+                    Ok(None)
+                }
+            }
+
+            (Type::F32 | Type::F64, CallingConvention::SystemV) => {
+                if self.next_fpr < Self::FLOAT_REGS.len() {
+                    let reg = Self::FLOAT_REGS[self.next_fpr];
+                    self.next_fpr += 1;
+
+                    Ok(Some(RiscvRegister::FPR(reg)))
+                } else {
+                    Ok(None)
+                }
+            }
+
+            // @todo: structs to registers (2*XLEN bits max)
+            //        XLEN is 64 for riscv64
+
+            _ => Err(CompileError::UnsupportedABI(ty.to_string(), calling_convention)),
+        }
     }
 }
 
