@@ -192,7 +192,7 @@ impl ArgumentRegisterAllocator {
                 }
             }
 
-            (Type::F32 | Type::F64, CallingConvention::SystemV) => {
+            (Type::F32 | Type::F64, CallingConvention::WasmBasicCAbi) => {
                 if self.next_fpr < Self::FLOAT_REGS.len() {
                     let reg = Self::FLOAT_REGS[self.next_fpr];
                     self.next_fpr += 1;
