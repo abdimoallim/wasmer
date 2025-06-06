@@ -41,10 +41,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Option 1
     println!("Calling `sum` function...");
-    let args = [Value::I32(1), Value::I32(2)];
+    let args = [Value::I32(8), Value::I32(7)];
     let result = sum.call(&mut store, &args)?;
     println!("Results: {:?}", result);
-    assert_eq!(result.to_vec(), vec![Value::I32(3)]);
+    assert_eq!(result.to_vec(), vec![Value::I32(15)]);
 
     // Option 2
     let sum_typed: TypedFunction<(i32, i32), i32> = sum.typed(&mut store)?;
@@ -52,6 +52,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = sum_typed.call(&mut store, 1, 2)?;
     println!("Results: {:?}", result);
     assert_eq!(result, 3);
+
+    // case 2 (constant function)
+    println!("constant function module...");
+
+    let wasm_bytes = wat2wasm(
+        r#"
+    (module
+    (func $const_func (result i32)
+        i32.const 100)
+    (export "const_func" (func $const_func))
+    )
+    "#
+        .as_bytes(),
+    )?;
+
+    let compiler = Singlepass::default();
+    let mut store = Store::new(compiler);
+    let module = Module::new(&store, wasm_bytes)?;
+    let import_object = imports! {};
+    let instance = Instance::new(&mut store, &module, &import_object)?;
+    let const_func = instance.exports.get_function("const_func")?;
+    let out = const_func.call(&mut store, &[])?;
+
+    println!("output: {:?}", out);
+    assert_eq!(out.to_vec(), vec![Value::I32(100)]);
 
     Ok(())
 }
